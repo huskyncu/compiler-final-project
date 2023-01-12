@@ -3,8 +3,9 @@
 	void yyerror(const char *message);
 	int yylex();
 	struct stack{
-		char name;
 		int ival;
+        char name;
+        char type;
 	}; 
 	struct stack stacks[10000];
 	int indexs = 0;
@@ -15,6 +16,7 @@
 	struct data{
 		int ival;		
 		char name;
+        char type;
 	}data;
 }
 
@@ -98,111 +100,174 @@ PRINT_STMT : '(' print_num EXP ')'  {   //printf("here2\n");
 			;  
 EXP	    : '(' NUM_OP ')'  {     
                                 $$.ival=$2.ival;   
+                                $$.type=$2.type;  
                                 // printf("here 5 %d\n",$$.ival);
                           }
 		| '(' LOGICAL_OP ')' {
 		                               $$.ival=$2.ival;
+                                       $$.type=$2.type;  
 		                     }
 		| '(' IF_EXP ')'   {    
 		                               $$.ival=$2.ival;
+                                       $$.type=$2.type;  
 		                           }
 		|bool_val {
 		                              $$.ival=$1.ival;
+                                      $$.type=$1.type;  
 		        }
 		| number   {
 		                             $$.ival=$1.ival;
+                                     $$.type=$1.type;  
 		            }
 		| VARIABLE {
 		                                 $$.ival=$1.ival;
+                                         $$.type=$1.type;  
 		        }
 		;
 					
 NUM_OP  : PLUS     {
                     $$.ival=$1.ival;  
+                    $$.type=$1.type;  
                     //printf("here %d\n", $$.ival);
                     }
 		| SUB    {
                     
                     $$.ival=$1.ival;
+                    $$.type=$1.type;  
                     }
 		| MUL { 
                     $$.ival=$1.ival;
+                    $$.type=$1.type;  
                    }
 		| DIV   { 
                         $$.ival=$1.ival;
+                        $$.type=$1.type;  
                 }
 		| MOD_FORMULA  { 
                         $$.ival=$1.ival;
+                        $$.type=$1.type;  
                    }
 		| GREATER  {
                      $$.ival=$1.ival;
+                     $$.type=$1.type;  
                     }
 		| SMALLER  { 
                         $$.ival=$1.ival;
+                        $$.type=$1.type;  
                     }
 		| EQUAL    {
                         $$.ival=$1.ival;
+                        $$.type=$1.type;  
                     }
                 ;
 PLUS    :  '+' EXP PLUS_EXP  { //printf("2\n");
+                            if($2.type!=$3.type){
+                                yyerror("Type error!");
+                                return 0;
+                               }
                             $$.ival=$2.ival+$3.ival;
+                            $$.type=$2.type;  
                             //printf("%d\n",$$.ival);
+                            //printf("%c %c\n",$2.type,$3.type);
                            }
                 ;
-PLUS_EXP   : EXP PLUS_EXP {   
+PLUS_EXP   : EXP PLUS_EXP { 
+                    if($1.type!=$2.type){
+                        //printf("%c %c\n",$1.type,$2.type);
+                        yyerror("Type error!");
+                        return 0;
+                    }
+                    //printf("%c %c\n",$1.type,$2.type);
                     $$.ival=$1.ival+$2.ival;
+                    $$.type=$2.type;  
                     }
 		| EXP {
                     $$.ival=$1.ival;
+                    $$.type=$1.type;  
                 }
         ;
 SUB   :  '-' EXP EXP  {
-                if(check ==0)
+                if($2.type!=$3.type){
+                    //printf("sub %c %c\n",$2.type,$3.type);
+                    yyerror("Type error!");
+                    return 0;
+                }
+                if(check !=2)
                 {
                     $$.ival=$2.ival-$3.ival;
+                    $$.type=$2.type;  
                 }
                 else{
                     $$.ival=$3.ival-$2.ival;
+                    $$.type=$2.type;  
                     check = 0 ;
                 }
                 
                 }
         ;
 MUL:  '*' EXP MUL_EXP  {
+            if($2.type!=$3.type){
+                    yyerror("Type error!");
+                    return 0;
+                }
             $$.ival=$2.ival*$3.ival;
+            $$.type=$2.type;  
             }
         ;
 MUL_EXP : EXP MUL_EXP {
+            if($2.type!=$1.type){
+            yyerror("Type error!");
+            return 0;
+            }
             $$.ival=$1.ival*$2.ival;
+            $$.type=$2.type;  
             }
 		| EXP {
             $$.ival=$1.ival;
+            $$.type=$1.type;  
             }
         ;
 DIV  :  '/' EXP EXP  {
-               if(check ==0)
+                if($2.type!=$3.type){
+                    //printf("here\n");
+                    yyerror("Type error!");
+                    return 0;
+                }
+               if(check !=2)
                 {
                     $$.ival=$2.ival/$3.ival;
+                    $$.type=$2.type;  
                 }
                 else{
                     $$.ival=$3.ival/$2.ival;
+                    $$.type=$2.type;  
                     check = 0 ;
                 }
         }
         ;
 MOD_FORMULA :  MOD EXP EXP  {
-                if(check ==0)
+                if($2.type!=$3.type){
+                    yyerror("Type error!");
+                    return 0;
+                }
+                if(check !=2)
                 {
                     $$.ival=$2.ival%$3.ival;
+                    $$.type=$2.type;  
                 }
                 else{
                     $$.ival=$3.ival%$2.ival;
+                    $$.type=$2.type;  
                     check = 0 ;
                 }
         }
         ;
 GREATER :  '>' EXP EXP  {
-                if(check ==0)
+                if($2.type!=$3.type){
+                        yyerror("Type error!");
+                        return 0;
+                    }
+                if(check !=2)
                 {
                     if($2.ival>$3.ival)
                     {
@@ -222,11 +287,16 @@ GREATER :  '>' EXP EXP  {
                     }
                     check = 0;
                 }
-                    
+                $$.type=$2.type;  
                 }
         ;
 SMALLER :  '<' EXP EXP  {
-            if(check == 0 )
+            if($2.type!=$3.type)
+            {
+                yyerror("Type error!");
+                return 0;
+            }
+            if(check != 2 )
             {
                 if($2.ival<$3.ival)
                 {
@@ -246,11 +316,16 @@ SMALLER :  '<' EXP EXP  {
                 }
                 check = 0;
             }
-
+            $$.type=$2.type;  
             
         }
         ;
 EQUAL   :  '=' EXP EQUAL_EXP  {
+            if($2.type!=$3.type)
+            {
+                yyerror("Type error!");
+                return 0;
+            }
             if($2.ival==$3.ival)
             {
                 $$.ival=1;
@@ -258,18 +333,25 @@ EQUAL   :  '=' EXP EQUAL_EXP  {
 			else{
                 $$.ival=0;
             }
+            $$.type=$2.type;  
             }
         ;
 EQUAL_EXP  : EXP EQUAL_EXP {
+            if($2.type!=$1.type){
+                yyerror("Type error!");
+                return 0;
+            }
             if($1.ival==$2.ival){
                 $$.ival=$1.ival;
             }
 			else{
                 $$.ival=0;
             }
+            $$.type=$2.type;  
             }
 		| EXP {
             $$.ival=$1.ival;
+            $$.type=$1.type;  
         }
         ;
 LOGICAL_OP : AND_OP
@@ -277,6 +359,10 @@ LOGICAL_OP : AND_OP
 		   | NOT_OP
            ;
 AND_OP  :  AND EXP AND_EXP  {
+            if($2.type!=$3.type){
+                yyerror("Type error!");
+                return 0;
+            }
             if($2.ival&$3.ival)
             {
                 $$.ival=1;
@@ -284,6 +370,7 @@ AND_OP  :  AND EXP AND_EXP  {
             else{
                 $$.ival=0;
             }
+            $$.type=$2.type;  
             }
         ;
 AND_EXP : EXP AND_EXP {
@@ -294,6 +381,7 @@ AND_EXP : EXP AND_EXP {
             else{
                 $$.ival=0;
             }
+            $$.type=$2.type;  
             }
         | EXP {
             if(!$1.ival){
@@ -301,15 +389,22 @@ AND_EXP : EXP AND_EXP {
             }else{
                 $$.ival=1;
             }
+            $$.type=$1.type;  
         }
         ;
 OR_OP   :  OR EXP OR_EXP   {
+            if($2.type!=$3.type)
+            {
+                yyerror("Type error!");
+                return 0;
+            }
             if($2.ival|$3.ival){
                 $$.ival=1;
             }
             else{
                 $$.ival=0;
             }
+            $$.type=$2.type;  
             }
         ;
 OR_EXP : EXP OR_EXP {
@@ -320,6 +415,7 @@ OR_EXP : EXP OR_EXP {
             else{
                 $$.ival=0;
             }
+            $$.type=$1.type;  
         }
 	   | EXP {
             if(!$1.ival)
@@ -329,49 +425,69 @@ OR_EXP : EXP OR_EXP {
             else{
                 $$.ival=1;
             }
+            $$.type=$1.type;  
         }
         ;
 NOT_OP :  NOT EXP  {
+            if($2.type!='b')
+            {
+                yyerror("Type error!");
+                return 0;
+            }
             if($2.ival){
                 $$.ival=0;
             }else{
                 $$.ival=1;
             }
+            $$.type=$2.type;  
         }
         ;
 IF_EXP :  IF TEST_EXP THEN_EXP ELSE_EXP  {
             if(!$2.ival){
                 $$.ival=$4.ival;
+                
             }
             else{
-                $$.ival=$3.ival;
+                $$.ival=$3.ival; 
             }
+            $$.type=$2.type;  
         }
         ;
 TEST_EXP : EXP {
             $$.ival=$1.ival;
+            $$.type=$1.type;  
         }
         ;   
 THEN_EXP : EXP {
             $$.ival=$1.ival;
+            $$.type=$1.type;  
         }
         ;
 ELSE_EXP : EXP {
             $$.ival=$1.ival;
+            $$.type=$1.type;  
         }
         ;
 DEF_STMT    : '(' define ID EXP ')'	
             {
                 stacks[indexs].name=$3.name; 
                 stacks[indexs].ival=$4.ival;
+                stacks[indexs].type = $4.type;
                 indexs++; 
                 $$.ival=$4.ival;
+                $$.type=$4.type;
+                // printf("define 3 %c\n",$3.name);
+                // printf("define 3 %c\n",$3.type);
+                // printf("define 4 name %c\n",$4.name);
+                // printf("define 4 name %c\n",$4.type);
+                // printf("define 4 name %d\n",$4.ival);
             }
             ;
 VARIABLE    : ID {
                 $$.ival=stacks[indexs-1].ival;
+                $$.type=stacks[indexs-1].type;  
                 indexs--;
-                check = 1;
+                check +=1;
             }
             ;
 %%

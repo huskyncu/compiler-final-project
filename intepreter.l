@@ -24,19 +24,23 @@ ID	        {letter}({letter}|{digit}|-)*
          }
 {number} {
               yylval.data.ival=atoi(yytext);
+              yylval.data.type='n';
               return number ;
          }
 {ID} {        
                 yylval.data.name=yytext[0];
+                yylval.data.type='n';
                  return ID ;
     }
 "#t" {       
                 yylval.data.name=yytext[0];
                  yylval.data.ival=1;
+                 yylval.data.type='b';
                  return bool_val ;
     }
 "#f" {      
                 yylval.data.name=yytext[0];
+                yylval.data.type='b';
                 yylval.data.ival=0;
                 return bool_val ;
     }
